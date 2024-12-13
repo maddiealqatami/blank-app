@@ -5,7 +5,7 @@ from langchain.chains import LLMChain
 
 # Initialize Streamlit app
 st.title("Block Blaster")
-st.write("Spur inspiration and overcome writer's block with the help of AI.")
+st.write("Spark inspiration and overcome writer's block with the help of AI.")
 
 # User API Key Input
 api_key = st.text_input("Enter your OpenAI API Key:", type="password")
