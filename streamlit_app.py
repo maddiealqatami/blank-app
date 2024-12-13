@@ -4,8 +4,8 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 
 # Initialize Streamlit app
-st.title("AI-Powered Short Story Creator")
-st.write("Create captivating short stories with the help of AI.")
+st.title("Block Blaster")
+st.write("Spur inspiration and overcome writer's block with the help of AI.")
 
 # User API Key Input
 api_key = st.text_input("Enter your OpenAI API Key:", type="password")
@@ -13,11 +13,17 @@ if not api_key:
     st.warning("Please enter your OpenAI API Key to proceed.")
     st.stop()
 
+# Temperature Slider
+temperature = st.slider("Adjust creativity (temperature):", min_value=0.0, max_value=1.0, value=0.7, step=0.1)
+
+# **Story Length Slider**
+story_length = st.slider("Story Length (number of words):", min_value=100, max_value=5000, value=1000, step=100)
+
 # LLM Setup
-openai = ChatOpenAI(api_key=api_key, model="gpt-3.5-turbo")
+openai = ChatOpenAI(api_key=api_key, model="gpt-3.5-turbo", temperature=temperature)
 prompt_template = PromptTemplate(
-    input_variables=["genre", "theme", "characters"],
-    template="Write a story in the {genre} genre with dialogue and imagery in the style of the following books and/or authors: {style}. The story should revolve around the theme of '{theme}' and include the following characters: {characters}."
+    input_variables=["genre", "theme", "characters", "style", "story_length"],
+    template="You are an award-winning novelist. Write a story with dialogue and imagery in the {genre} genre. The story should revolve around the theme of '{theme}' without explicitly stating the theme. The story should include the following characters: {characters}, and match the style of {style} in tone and word choice. Use literary devices to show, not tell the story. The story should be approximately {story_length} words long."
 )
 chain = LLMChain(llm=openai, prompt=prompt_template)
 
@@ -25,8 +31,8 @@ chain = LLMChain(llm=openai, prompt=prompt_template)
 st.header("Story Parameters")
 genre = st.text_input("Enter the genre (e.g., fantasy, sci-fi, romance):")
 theme = st.text_input("Enter the theme (e.g., friendship, adventure, love):")
-style = st.text_input("Enter books or authors the story should be written in the style of:")
 characters = st.text_area("List the characters (e.g., Jack, a brave knight; Luna, a wise sorceress):")
+style = st.text_area("Enter authors and/or books to use for style inspiration (e.g., J.K. Rowling, The Hobbit):")
 
 # Placeholder for the story
 story = ""
@@ -43,33 +49,18 @@ if st.button("Create Story"):
                     "genre": genre,
                     "theme": theme,
                     "characters": characters,
-                    "style": style
+                    "style": style,
+                    "story_length": story_length
                 })
                 st.success("Your story is ready!")
                 story_holder.text_area("Generated Story", value=story, height=400)
             except Exception as e:
                 st.error(f"An error occurred: {e}")
 
-# Options to Regenerate or Edit Inputs
+# Save and Download Story
 if story:
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Regenerate Story"):
-            with st.spinner("Regenerating your story..."):
-                try:
-                    story = chain.run({
-                        "genre": genre,
-                        "theme": theme,
-                        "characters": characters,
-                        "style": style
-                    })
-                    story_holder.text_area("Generated Story", value=story, height=400)
-                    st.success("Your story has been regenerated!")
-                except Exception as e:
-                    st.error(f"An error occurred: {e}")
-    with col2:
-        if st.button("Edit Inputs and Regenerate"):
-            st.info("You can edit the inputs above and click 'Create Story' again to regenerate.")
+    st.download_button("Download as Text", story, "short_story.txt")
+
 
 # Footer
 st.markdown("---")
